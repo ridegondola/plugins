@@ -10,10 +10,10 @@ import 'firebase_list.dart';
 import 'firebase_sorted_list.dart';
 
 typedef Widget FirebaseAnimatedListItemBuilder(
-  BuildContext context,
-  DataSnapshot snapshot,
-  Animation<double> animation,
-);
+    BuildContext context,
+    DataSnapshot snapshot,
+    Animation<double> animation,
+    );
 
 /// An AnimatedList widget that is bound to a query
 class FirebaseAnimatedList extends StatefulWidget {
@@ -24,6 +24,7 @@ class FirebaseAnimatedList extends StatefulWidget {
     @required this.itemBuilder,
     this.sort,
     this.defaultChild,
+    this.emptyStateChild,
     this.scrollDirection: Axis.vertical,
     this.reverse: false,
     this.controller,
@@ -48,6 +49,10 @@ class FirebaseAnimatedList extends StatefulWidget {
   /// A widget to display while the query is loading. Defaults to an empty
   /// Container().
   final Widget defaultChild;
+
+  /// A widget to display if the query returns as empty. Defaults to an empty
+  /// Container().
+  final Widget emptyStateChild;
 
   /// Called, as needed, to build list item widgets.
   ///
@@ -133,7 +138,7 @@ class FirebaseAnimatedList extends StatefulWidget {
 
 class FirebaseAnimatedListState extends State<FirebaseAnimatedList> {
   final GlobalKey<AnimatedListState> _animatedListKey =
-      new GlobalKey<AnimatedListState>();
+  new GlobalKey<AnimatedListState>();
   List<DataSnapshot> _model;
   bool _loaded = false;
 
@@ -173,7 +178,7 @@ class FirebaseAnimatedListState extends State<FirebaseAnimatedList> {
     assert(index >= _model.length || _model[index].key != snapshot.key);
     _animatedListKey.currentState.removeItem(
       index,
-      (BuildContext context, Animation<double> animation) {
+          (BuildContext context, Animation<double> animation) {
         return widget.itemBuilder(context, snapshot, animation);
       },
       duration: widget.duration,
@@ -205,6 +210,9 @@ class FirebaseAnimatedListState extends State<FirebaseAnimatedList> {
   Widget build(BuildContext context) {
     if (!_loaded) {
       return widget.defaultChild ?? new Container();
+    }
+    if (_model.isEmpty) {
+      return widget.emptyStateChild ?? new Container();
     }
     return new AnimatedList(
       key: _animatedListKey,
